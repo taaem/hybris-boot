@@ -33,6 +33,14 @@ HYBRIS_B_ALWAYSDEBUG :=
 HYBRIS_R_DEFAULT_OS := sailfishos
 HYBRIS_R_ALWAYSDEBUG := 1
 
+# Get Alternative Device name for updater script from
+# devicetree cm.mk, variable PRODUCT_ALT_DEVICES
+HYBRIS_ALT_DEVICE := $(shell find device/*/$(TARGET_DEVICE) -name cm.mk -exec sh -c '(cat {} | grep PRODUCT_ALT_DEVICE )' ';' | sed -e "s/PRODUCT_ALT_DEVICE := //g")
+# if no other device name is found use TARGET_DEVICE
+ifeq "$(HYBRIS_ALT_DEVICE)" ""
+HYBRIS_ALT_DEVICE := $(TARGET_DEVICE)
+endif
+
 ## All manual "config" should be done above this line
 
 # Force deferred assignment
@@ -228,6 +236,7 @@ $(LOCAL_BUILT_MODULE): $(UPDATER_SCRIPT_SRC)
 	mkdir -p $(dir $@)
 	rm -rf $@
 	@sed -e 's %DEVICE% $(TARGET_DEVICE) g' \
+             -e 's %ALT_DEVICE% $(HYBRIS_ALT_DEVICE) g' \
              -e 's %BOOT_PART% $(HYBRIS_BOOT_PART) g' \
              -e 's %DATA_PART% $(HYBRIS_DATA_PART) g' \
              -e 's|%SET_PERMISSIONS%|$(SET_PERMISSIONS)|' \
